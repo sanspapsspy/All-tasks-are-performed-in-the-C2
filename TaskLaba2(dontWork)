@@ -1,0 +1,148 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include<locale.h>
+
+// Объявляем прототипы функций
+char* flag_l(char*);
+char* flag_r(char*);
+char* flag_u(char*);
+char* flag_n(char*);
+char* flag_c(unsigned int, char**, int);
+
+// Главная функция программы
+
+int main(int argc, char* argv[]) {
+    setlocale(LC_ALL ,"Rus");
+    if (argc < 3) {
+        fprintf(stderr, "Ошибка: недостаточно аргументов.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    char* flag = argv[1];
+    char* input_string = argv[2];
+
+    switch (flag[1]) {
+    case 'l':
+        printf("%s\n", flag_l(input_string));
+        break;
+    case 'r':
+        printf("%s\n", flag_r(input_string));
+        break;
+    case 'u':
+        printf("%s\n", flag_u(input_string));
+        break;
+    case 'n':
+        printf("%s\n", flag_n(input_string));
+        break;
+    case 'c': {
+        if (argc < 4 || !isdigit(argv[3][0])) {
+            fprintf(stderr, "Ошибка: неверный третий аргумент для флага 'c'.\n");
+            exit(EXIT_FAILURE);
+        }
+        unsigned int seed = strtol(argv[3], NULL, 10);
+        printf("%s\n", flag_c(seed, argv + 2, argc - 2)); // передаем срез массива
+        break;
+    }
+    default:
+        fprintf(stderr, "Ошибка: неизвестный флаг '%s'\n", flag);
+        exit(EXIT_FAILURE);
+    }
+
+    return EXIT_SUCCESS;
+}
+
+// Возвращает строку с длиной входящей строки
+char* flag_l(char* str) {
+    int len = strlen(str);
+    char* result = malloc(len + 1); // Добавляем 1 для терминального нуля
+    snprintf(result, len + 1, "%zu", len);
+    return result;
+}
+
+// Перевертывает строку
+char* flag_r(char* str) {
+    int len = strlen(str);
+    char* reversed_str = malloc(len + 1); // Выделяем память с учетом терминального нуля
+    for (int i = 0; i < len; i++)
+        reversed_str[len - i - 1] = str[i];
+    reversed_str[len] = '\0';
+    return reversed_str;
+}
+
+// Преобразует каждый второй символ в верхний регистр
+char* flag_u(char* str) {
+    int len = strlen(str);
+    char* uppered_str = malloc(len + 1); // Выделяем память с учетом терминального нуля
+    strcpy(uppered_str, str);
+    for (int i = 0; i < len; i++) {
+        if (i % 2 == 0 && isalpha(str[i]))
+            uppered_str[i] = toupper(str[i]);
+    }
+    return uppered_str;
+}
+
+// Сортируем символы: цифры → буквы → прочие символы
+char* flag_n(char* str) {
+    int len = strlen(str);
+    int digit_len = 0, letter_len = 0, other_len = 0;
+
+    // Подсчет количества символов разных типов
+    for (int i = 0; i < len; i++) {
+        if (isdigit(str[i]))
+            digit_len++;
+        else if (isalpha(str[i]))
+            letter_len++;
+        else
+            other_len++;
+    }
+
+    // Динамическое выделение памяти под каждую категорию символов
+    char* digits = malloc(digit_len + 1);
+    char* letters = malloc(letter_len + 1);
+    char* others = malloc(other_len + 1);
+
+    digits[0] = letters[0] = others[0] = '\0'; // Инициализация пустой строки
+
+    // Классификация символов
+    for (int i = 0; i < len; i++) {
+        if (isdigit(str[i]))
+            strcat(digits, &(str[i]));
+        else if (isalpha(str[i]))
+            strcat(letters, &(str[i]));
+        else
+            strcat(others, &(str[i]));
+    }
+
+    // Объединение категорий символов
+    char* sorted_str = malloc(strlen(digits) + strlen(letters) + strlen(others) + 1);
+    strcpy(sorted_str, digits);
+    strcat(sorted_str, letters);
+    strcat(sorted_str, others);
+
+    // Освобождаем временные буферы
+    free(digits);
+    free(letters);
+    free(others);
+
+    return sorted_str;
+}
+
+// Случайная конкатенация строк
+char* flag_c(unsigned int seed, char** strings, int n_strings) {
+    srand(seed);
+    char* concatenated = strdup(strings[0]); // Начнем с первой строки
+    free(strings[0]); // Освобождаем оригинальную строку
+
+    while (n_strings-- > 1) {
+        int idx = rand() % n_strings;
+        char* temp = strdup(strings[idx]);
+        free(strings[idx]);
+        strings[idx] = strings[n_strings];
+        strings[n_strings] = temp;
+        strcat(concatenated, strings[n_strings]);
+    }
+
+    return concatenated;
+}
