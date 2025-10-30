@@ -1,148 +1,175 @@
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <ctype.h>
 #include<locale.h>
 
-// Объявляем прототипы функций
-char* flag_l(char*);
-char* flag_r(char*);
-char* flag_u(char*);
-char* flag_n(char*);
-char* flag_c(unsigned int, char**, int);
-
-// Главная функция программы
-
-int main(int argc, char* argv[]) {
-    setlocale(LC_ALL ,"Rus");
-    if (argc < 3) {
-        fprintf(stderr, "Ошибка: недостаточно аргументов.\n");
-        exit(EXIT_FAILURE);
+// Вспомогательные функции для работы со строками
+size_t my_strlen(const char* str) {
+    size_t len = 0;
+    while (str[len] != '\0') {
+        len++;
     }
-
-    char* flag = argv[1];
-    char* input_string = argv[2];
-
-    switch (flag[1]) {
-    case 'l':
-        printf("%s\n", flag_l(input_string));
-        break;
-    case 'r':
-        printf("%s\n", flag_r(input_string));
-        break;
-    case 'u':
-        printf("%s\n", flag_u(input_string));
-        break;
-    case 'n':
-        printf("%s\n", flag_n(input_string));
-        break;
-    case 'c': {
-        if (argc < 4 || !isdigit(argv[3][0])) {
-            fprintf(stderr, "Ошибка: неверный третий аргумент для флага 'c'.\n");
-            exit(EXIT_FAILURE);
-        }
-        unsigned int seed = strtol(argv[3], NULL, 10);
-        printf("%s\n", flag_c(seed, argv + 2, argc - 2)); // передаем срез массива
-        break;
-    }
-    default:
-        fprintf(stderr, "Ошибка: неизвестный флаг '%s'\n", flag);
-        exit(EXIT_FAILURE);
-    }
-
-    return EXIT_SUCCESS;
+    return len;
 }
 
-// Возвращает строку с длиной входящей строки
-char* flag_l(char* str) {
-    int len = strlen(str);
-    char* result = malloc(len + 1); // Добавляем 1 для терминального нуля
-    snprintf(result, len + 1, "%zu", len);
+char* my_strcpy(char* dest, const char* src) {
+    char* original_dest = dest;
+    while (*src != '\0') {
+        *dest++ = *src++;
+    }
+    *dest = '\0';
+    return original_dest;
+}
+
+// Функции для флагов
+char* process_flag_l(const char* str) {
+    size_t len = my_strlen(str);
+    char* result = malloc(20); // Достаточно для числа
+    if (result != NULL) {
+        snprintf(result, 20, "%zu", len);
+    }
     return result;
 }
 
-// Перевертывает строку
-char* flag_r(char* str) {
-    int len = strlen(str);
-    char* reversed_str = malloc(len + 1); // Выделяем память с учетом терминального нуля
-    for (int i = 0; i < len; i++)
-        reversed_str[len - i - 1] = str[i];
-    reversed_str[len] = '\0';
-    return reversed_str;
+char* process_flag_r(const char* str) {
+    size_t len = my_strlen(str);
+    char* result = malloc(len + 1);
+    if (result != NULL) {
+        for (size_t i = 0; i < len; i++) {
+            result[i] = str[len - 1 - i];
+        }
+        result[len] = '\0';
+    }
+    return result;
 }
 
-// Преобразует каждый второй символ в верхний регистр
-char* flag_u(char* str) {
-    int len = strlen(str);
-    char* uppered_str = malloc(len + 1); // Выделяем память с учетом терминального нуля
-    strcpy(uppered_str, str);
-    for (int i = 0; i < len; i++) {
-        if (i % 2 == 0 && isalpha(str[i]))
-            uppered_str[i] = toupper(str[i]);
+char* process_flag_u(const char* str) {
+    size_t len = my_strlen(str);
+    char* result = malloc(len + 1);
+    if (result != NULL) {
+        for (size_t i = 0; i < len; i++) {
+            if (i % 2 == 1) {
+                result[i] = toupper(str[i]);
+            }
+            else {
+                result[i] = str[i];
+            }
+        }
+        result[len] = '\0';
     }
-    return uppered_str;
+    return result;
 }
 
-// Сортируем символы: цифры → буквы → прочие символы
-char* flag_n(char* str) {
-    int len = strlen(str);
-    int digit_len = 0, letter_len = 0, other_len = 0;
+char* process_flag_n(const char* str) {
+    size_t len = my_strlen(str);
+    char* result = malloc(len + 1);
+    if (result == NULL) return NULL;
 
-    // Подсчет количества символов разных типов
-    for (int i = 0; i < len; i++) {
-        if (isdigit(str[i]))
-            digit_len++;
-        else if (isalpha(str[i]))
-            letter_len++;
-        else
-            other_len++;
+    size_t idx = 0;
+
+    // Цифры
+    for (size_t i = 0; i < len; i++) {
+        if (isdigit(str[i])) {
+            result[idx++] = str[i];
+        }
     }
 
-    // Динамическое выделение памяти под каждую категорию символов
-    char* digits = malloc(digit_len + 1);
-    char* letters = malloc(letter_len + 1);
-    char* others = malloc(other_len + 1);
-
-    digits[0] = letters[0] = others[0] = '\0'; // Инициализация пустой строки
-
-    // Классификация символов
-    for (int i = 0; i < len; i++) {
-        if (isdigit(str[i]))
-            strcat(digits, &(str[i]));
-        else if (isalpha(str[i]))
-            strcat(letters, &(str[i]));
-        else
-            strcat(others, &(str[i]));
+    // Буквы
+    for (size_t i = 0; i < len; i++) {
+        if (isalpha(str[i])) {
+            result[idx++] = str[i];
+        }
     }
 
-    // Объединение категорий символов
-    char* sorted_str = malloc(strlen(digits) + strlen(letters) + strlen(others) + 1);
-    strcpy(sorted_str, digits);
-    strcat(sorted_str, letters);
-    strcat(sorted_str, others);
+    // Остальные символы
+    for (size_t i = 0; i < len; i++) {
+        if (!isdigit(str[i]) && !isalpha(str[i])) {
+            result[idx++] = str[i];
+        }
+    }
 
-    // Освобождаем временные буферы
-    free(digits);
-    free(letters);
-    free(others);
-
-    return sorted_str;
+    result[idx] = '\0';
+    return result;
 }
 
-// Случайная конкатенация строк
-char* flag_c(unsigned int seed, char** strings, int n_strings) {
+char* process_flag_c(unsigned int seed, int count, char** strings) {
+    if (count < 2) return NULL;
+
+    // Подсчет общей длины
+    size_t total_len = 0;
+    for (int i = 1; i < count; i++) {
+        total_len += my_strlen(strings[i]);
+    }
+
+    char* result = malloc(total_len + 1);
+    if (result == NULL) return NULL;
+
+    // Создание массива индексов и перемешивание
+    int* indices = malloc((count - 1) * sizeof(int));
+    if (indices == NULL) {
+        free(result);
+        return NULL;
+    }
+
+    for (int i = 0; i < count - 1; i++) {
+        indices[i] = i + 1;
+    }
+
     srand(seed);
-    char* concatenated = strdup(strings[0]); // Начнем с первой строки
-    free(strings[0]); // Освобождаем оригинальную строку
-
-    while (n_strings-- > 1) {
-        int idx = rand() % n_strings;
-        char* temp = strdup(strings[idx]);
-        free(strings[idx]);
-        strings[idx] = strings[n_strings];
-        strings[n_strings] = temp;
-        strcat(concatenated, strings[n_strings]);
+    // Простой алгоритм Фишера-Йетса
+    for (int i = count - 2; i > 0; i--) {
+        int j = rand() % (i + 1);
+        int temp = indices[i];
+        indices[i] = indices[j];
+        indices[j] = temp;
     }
 
-    return concatenated;
+    // Конкатенация в случайном порядке
+    size_t pos = 0;
+    for (int i = 0; i < count - 1; i++) {
+        char* current = strings[indices[i]];
+        size_t current_len = my_strlen(current);
+        my_strcpy(result + pos, current);
+        pos += current_len;
+    }
+
+    free(indices);
+    return result;
+}
+
+void main() {
+    setlocale(LC_ALL, "Rus");
+    printf("=== Задание 2: Обработка строк ===\n");
+
+    // Демонстрация без аргументов командной строки
+    const char* test_str = "Hello123 World!";
+
+    char* result;
+
+    // Флаг -l
+    result = process_flag_l(test_str);
+    printf("Флаг -l (длина): %s\n", result);
+    free(result);
+
+    // Флаг -r
+    result = process_flag_r(test_str);
+    printf("Флаг -r (реверс): %s\n", result);
+    free(result);
+
+    // Флаг -u
+    result = process_flag_u(test_str);
+    printf("Флаг -u (верхний регистр): %s\n", result);
+    free(result);
+
+    // Флаг -n
+    result = process_flag_n(test_str);
+    printf("Флаг -n (сортировка): %s\n", result);
+    free(result);
+
+    // Флаг -c
+    char* test_strings[] = { "prog", "Hello", "World", "Test", "String" };
+    result = process_flag_c(123, 5, test_strings);
+    printf("Флаг -c (конкатенация): %s\n", result);
+    free(result);
+
+    printf("\n");
 }
