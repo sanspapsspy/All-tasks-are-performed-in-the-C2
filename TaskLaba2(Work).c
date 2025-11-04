@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include<locale.h>
+#include <locale.h>
+#include <string.h>
 
 // Вспомогательные функции для работы со строками
 size_t my_strlen(const char* str) {
@@ -18,6 +20,15 @@ char* my_strcpy(char* dest, const char* src) {
     }
     *dest = '\0';
     return original_dest;
+}
+
+char* my_strdup(const char* str) {
+    size_t len = my_strlen(str);
+    char* result = malloc(len + 1);
+    if (result != NULL) {
+        my_strcpy(result, str);
+    }
+    return result;
 }
 
 // Функции для флагов
@@ -48,7 +59,7 @@ char* process_flag_u(const char* str) {
     if (result != NULL) {
         for (size_t i = 0; i < len; i++) {
             if (i % 2 == 1) {
-                result[i] = toupper(str[i]);
+                result[i] = toupper((unsigned char)str[i]);
             }
             else {
                 result[i] = str[i];
@@ -68,21 +79,21 @@ char* process_flag_n(const char* str) {
 
     // Цифры
     for (size_t i = 0; i < len; i++) {
-        if (isdigit(str[i])) {
+        if (isdigit((unsigned char)str[i])) {
             result[idx++] = str[i];
         }
     }
 
     // Буквы
     for (size_t i = 0; i < len; i++) {
-        if (isalpha(str[i])) {
+        if (isalpha((unsigned char)str[i])) {
             result[idx++] = str[i];
         }
     }
 
     // Остальные символы
     for (size_t i = 0; i < len; i++) {
-        if (!isdigit(str[i]) && !isalpha(str[i])) {
+        if (!isdigit((unsigned char)str[i]) && !isalpha((unsigned char)str[i])) {
             result[idx++] = str[i];
         }
     }
@@ -97,7 +108,9 @@ char* process_flag_c(unsigned int seed, int count, char** strings) {
     // Подсчет общей длины
     size_t total_len = 0;
     for (int i = 1; i < count; i++) {
-        total_len += my_strlen(strings[i]);
+        if (strings[i] != NULL) {
+            total_len += my_strlen(strings[i]);
+        }
     }
 
     char* result = malloc(total_len + 1);
@@ -115,7 +128,7 @@ char* process_flag_c(unsigned int seed, int count, char** strings) {
     }
 
     srand(seed);
-    // Простой алгоритм Фишера-Йетса
+    // Алгоритм Фишера-Йетса
     for (int i = count - 2; i > 0; i--) {
         int j = rand() % (i + 1);
         int temp = indices[i];
@@ -127,17 +140,20 @@ char* process_flag_c(unsigned int seed, int count, char** strings) {
     size_t pos = 0;
     for (int i = 0; i < count - 1; i++) {
         char* current = strings[indices[i]];
-        size_t current_len = my_strlen(current);
-        my_strcpy(result + pos, current);
-        pos += current_len;
+        if (current != NULL) {
+            size_t current_len = my_strlen(current);
+            my_strcpy(result + pos, current);
+            pos += current_len;
+        }
     }
+    result[pos] = '\0';
 
     free(indices);
     return result;
 }
 
-void main() {
-    setlocale(LC_ALL, "Rus");
+int main() {
+    setlocale(LC_ALL, "Russian");
     printf("=== Задание 2: Обработка строк ===\n");
 
     // Демонстрация без аргументов командной строки
@@ -172,4 +188,5 @@ void main() {
     free(result);
 
     printf("\n");
+    return 0;
 }
