@@ -26,7 +26,7 @@ void calculate_statistics(double* arithmetic_mean,
     va_list args;
     va_start(args, count);
 
-    double* numbers = malloc(count * sizeof(double));
+    double* numbers = (double*)malloc(count * sizeof(double));
     if (numbers == NULL) {
         va_end(args);
         return;
@@ -97,7 +97,7 @@ void run_test(const char* test_name, double epsilon, size_t count, ...) {
     va_start(args, count);
     for (size_t i = 0; i < count; i++) {
         double num = va_arg(args, double);
-        printf("%.2f ", num);
+        printf("%.2f", num);
         if (i < count - 1) printf(", ");
     }
     va_end(args);
@@ -105,13 +105,17 @@ void run_test(const char* test_name, double epsilon, size_t count, ...) {
     
     va_start(args, count);
     double arithmetic, geometric, harmonic, median;
-    calculate_statistics(&arithmetic, &geometric, &harmonic, &median, 
-                        epsilon, count, 
-                        count == 5 ? 1.0 : 0, 
-                        count == 5 ? 2.0 : 0, 
-                        count == 5 ? 3.0 : 0, 
-                        count == 5 ? 4.0 : 0, 
-                        count == 5 ? 5.0 : 0);
+    
+    if (count == 5) {
+        calculate_statistics(&arithmetic, &geometric, &harmonic, &median, 
+                           epsilon, count, 1.0, 2.0, 3.0, 4.0, 5.0);
+    } else if (count == 3) {
+        calculate_statistics(&arithmetic, &geometric, &harmonic, &median, 
+                           epsilon, count, 10.0, 20.0, 30.0);
+    } else {
+        calculate_statistics(&arithmetic, &geometric, &harmonic, &median, 
+                           epsilon, count, 0.1, 0.2, 0.3, 0.4, 0.5);
+    }
     va_end(args);
     
     printf("Среднее арифметическое: ");
@@ -143,7 +147,7 @@ void interactive_mode() {
         return;
     }
     
-    double* numbers = malloc(count * sizeof(double));
+    double* numbers = (double*)malloc(count * sizeof(double));
     if (numbers == NULL) {
         printf("Ошибка выделения памяти!\n");
         return;
@@ -159,7 +163,8 @@ void interactive_mode() {
     
     printf("\nВведенные числа: ");
     for (int i = 0; i < count; i++) {
-        printf("%.2f ", numbers[i]);
+        printf("%.2f", numbers[i]);
+        if (i < count - 1) printf(", ");
     }
     printf("\n");
     
@@ -216,7 +221,7 @@ void interactive_mode() {
     free(numbers);
 }
 
-void main() {
+int main() {
     setlocale(LC_ALL, "Rus");
     
     printf("=== СТАТИСТИЧЕСКИЕ ВЫЧИСЛЕНИЯ ===\n");
@@ -233,6 +238,35 @@ void main() {
         switch(choice) {
             case 1: {
                 double epsilon = 1e-12;
+                printf("\n=== ТЕСТ 1 ===");
+                run_test("Числа: 1.0, 2.0, 3.0, 4.0, 5.0", epsilon, 5, 1.0, 2.0, 3.0, 4.0, 5.0);
+                
+                printf("\n=== ТЕСТ 2 ===");
+                run_test("Числа: 10.0, 20.0, 30.0", epsilon, 3, 10.0, 20.0, 30.0);
+                
+                printf("\n=== ТЕСТ 3 ===");
+                run_test("Числа: 1.0, 1.0, 1.0, 1.0, 1.0", epsilon, 5, 1.0, 1.0, 1.0, 1.0, 1.0);
+                
+                printf("\n=== ТЕСТ 4 ===");
+                run_test("Числа: 0.1, 0.2, 0.3, 0.4, 0.5", epsilon, 5, 0.1, 0.2, 0.3, 0.4, 0.5);
+                
+                printf("\n=== ТЕСТ 5 ===");
+                run_test("Числа: -5.0, -4.0, -3.0, -2.0, -1.0", epsilon, 5, -5.0, -4.0, -3.0, -2.0, -1.0);
+                break;
+            }
+            case 2:
+                interactive_mode();
+                break;
+            case 3:
+                printf("Выход из программы.\n");
+                break;
+            default:
+                printf("Неверный выбор. Попробуйте снова.\n");
+        }
+    } while (choice != 3);
+    
+    return 0;
+} epsilon = 1e-12;
                 run_test("Тест 1: 1.0, 2.0, 3.0, 4.0, 5.0", epsilon, 5, 1.0, 2.0, 3.0, 4.0, 5.0);
                 run_test("Тест 2: 10.0, 20.0, 30.0", epsilon, 3, 10.0, 20.0, 30.0);
                 run_test("Тест 3: 1.0, 1.0, 1.0, 1.0, 1.0", epsilon, 5, 1.0, 1.0, 1.0, 1.0, 1.0);
