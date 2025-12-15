@@ -266,6 +266,53 @@ int main() {
     } while (choice != 3);
     
     return 0;
+}
+
+int main() {
+    setlocale(LC_ALL, "Rus");
+    
+    printf("=== СТАТИСТИЧЕСКИЕ ВЫЧИСЛЕНИЯ ===\n");
+    
+    int choice;
+    do {
+        printf("\nМеню:\n");
+        printf("1. Запустить стандартные тесты\n");
+        printf("2. Интерактивный режим\n");
+        printf("3. Выход\n");
+        printf("Выберите опцию: ");
+        scanf("%d", &choice);
+        
+        switch(choice) {
+            case 1: {
+                double epsilon = 1e-12;
+                printf("\n=== ТЕСТ 1 ===");
+                run_test("Числа: 1.0, 2.0, 3.0, 4.0, 5.0", epsilon, 5, 1.0, 2.0, 3.0, 4.0, 5.0);
+                
+                printf("\n=== ТЕСТ 2 ===");
+                run_test("Числа: 10.0, 20.0, 30.0", epsilon, 3, 10.0, 20.0, 30.0);
+                
+                printf("\n=== ТЕСТ 3 ===");
+                run_test("Числа: 1.0, 1.0, 1.0, 1.0, 1.0", epsilon, 5, 1.0, 1.0, 1.0, 1.0, 1.0);
+                
+                printf("\n=== ТЕСТ 4 ===");
+                run_test("Числа: 0.1, 0.2, 0.3, 0.4, 0.5", epsilon, 5, 0.1, 0.2, 0.3, 0.4, 0.5);
+                
+                printf("\n=== ТЕСТ 5 ===");
+                run_test("Числа: -5.0, -4.0, -3.0, -2.0, -1.0", epsilon, 5, -5.0, -4.0, -3.0, -2.0, -1.0);
+                break;
+            }
+            case 2:
+                interactive_mode();
+                break;
+            case 3:
+                printf("Выход из программы.\n");
+                break;
+            default:
+                printf("Неверный выбор. Попробуйте снова.\n");
+        }
+    } while (choice != 3);
+    
+    return 0;
 } epsilon = 1e-12;
                 run_test("Тест 1: 1.0, 2.0, 3.0, 4.0, 5.0", epsilon, 5, 1.0, 2.0, 3.0, 4.0, 5.0);
                 run_test("Тест 2: 10.0, 20.0, 30.0", epsilon, 3, 10.0, 20.0, 30.0);
