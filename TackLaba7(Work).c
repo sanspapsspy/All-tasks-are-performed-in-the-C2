@@ -624,7 +624,7 @@ int oversscanf(const char* str, const char* format, ...) {
 void demo_overfscanf() {
     printf("Демонстрация функций overfscanf и oversscanf\n\n");
     
-    FILE* test_file = fopen("test_input.txt", "w+");
+    FILE* test_file = fopen("test_input.txt", "w");
     if (test_file) {
         fprintf(test_file, "MMXXIII 1001011 FF 1010\n");
         rewind(test_file);
